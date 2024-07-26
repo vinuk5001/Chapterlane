@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/main.css?v=3.4">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            width: 100%;
+            margin: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .order-card {
+            background: #e9ecef;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .order-card:hover {
+            transform: scale(1.02);
+        }
+
+        .order-card h2 {
+            margin-top: 0;
+            color: #343a40;
+            font-size: 1.5rem;
+        }
+
+        .order-card p {
+            margin: 0.5rem 0;
+        }
+
+        .order-card span {
+            font-weight: bold;
+        }
+
+        .btn-small {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .btn-small:hover {
+            background-color: #218838;
+        }
+
+        .btn-small i {
+            margin-right: 5px;
+        }
+
+        .btn-cancel {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: #dc3545;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .btn-cancel:hover {
+            background-color: #c82333;
+        }
+    </style>
+     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+</head>
+<body>
+    <div class="container">
+        <h1>Order Details</h1>
+        <div class="order-card">
+            <h2>Order Information</h2>
+            <p><span>Order Date:</span> <%= new Date(order.orderDate).toLocaleDateString() %></p>
+            <p><span>Status:</span> <%= order.orderStatus %></p>
+            <p><span>Bill Total:</span> <%= order.billTotal %></p>
+            <p><span>Payment Method:</span> <%= order.paymentMethod %></p>
+            <button class="btn-cancel" onclick="cancelOrder('<%= order._id %>')">Cancel Order</button>
+        </div>
+
+        <% order.items.forEach(item => { %>
+            <div class="order-card">
+                <h2>Product Information</h2> 
+                <p><span>Product Name:</span> <%= item.product.name %></p>
+                <p><span>Quantity:</span> <%= item.quantity %></p>
+                <p><span>Subtotal:</span> <%= item.subtotal %></p>
+            </div>
+        <% }) %>
+    </div>
+</body>
+
+<script>
+     async function cancelOrder(orderId) {
+        const { value: reason } = await Swal.fire({
+            title: 'Cancel Order',
+            input: 'textarea',
+            inputLabel: 'Cancel Reason',
+            inputPlaceholder: 'Type your reason here...',
+            inputAttributes: {
+                'aria-label': 'Type your reason here'
+            },
+            showCancelButton: true
+        });
+
+        if (reason) {
+            try {
+                const response = await fetch(`/cancelOrder`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ orderId: orderId, reason: reason })
+                });
+
+                if (response.ok) {
+                    Swal.fire('Cancelled', 'Your order has been cancelled.', 'success').then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire('Error', 'Failed to cancel order.', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire('Error', 'Error cancelling order.', 'error');
+            }
+        }
+    }
+</script>
+</html>
